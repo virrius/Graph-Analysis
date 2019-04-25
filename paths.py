@@ -1,4 +1,4 @@
-class Graph_Description:
+class GraphDescription:
 
     def __init__(self):
         self.radius = None
@@ -71,7 +71,7 @@ def calculate_paths(matrix):
 
         vert_dist.append(dist)
 
-    result = Graph_Description()
+    result = GraphDescription()
     result.radius = min(vert_dist)
     result.diameter = max(vert_dist)
     result.central_vertices = [i for i in range(N) if vert_dist[i] == result.radius]

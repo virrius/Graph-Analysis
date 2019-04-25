@@ -17,12 +17,13 @@ def degrees(matrix):
 
 if __name__ == "__main__":
     # Load graph data into adjacency matrix
-    mat, id_person = parse_file('qq.gexf')
+    mat, id_person = parse_file('vk.gexf')
+    print("ID ",id_person)
     cnt = len(mat)
 
     # -------------------------------------TASK 1-------------------------------------
     print('TASK 1')
-
+    print(mat)
     # Calculate components
     vert_comp, comp_count, main_comp = component(mat)
     print(vert_comp)
