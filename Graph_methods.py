@@ -1,5 +1,7 @@
 from networkx import *
 
+def get_max_connectivity_component(graph, nodes):
+    return subgraph(graph.Graph,nodes)
 
 def parse_graph_from_gexf(path):
     return read_gexf(path)
@@ -28,3 +30,7 @@ class GraphClass:
 
     def nodes(self):
         return self.Graph.nodes
+
+    def degree(self, node):
+        return degree(self.Graph, node)
+
