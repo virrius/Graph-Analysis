@@ -1,4 +1,4 @@
-from Graph_methods import GraphClass, get_max_connectivity_component
+from Graph_methods import GraphClass, get_subgraph
 import matplotlib.pyplot as plt
 
 Graph = GraphClass("vk.gexf")
@@ -15,28 +15,22 @@ print("Число вершин в каждой из компонент силь�
 print("Доля узлов в наибольшей компоненте слабой связности: ", max(weak_comp_lengths) / len(Graph.nodes()) * 100, "%")
 
 
-Graph.Graph = get_max_connectivity_component(Graph, max(weak_components))
+'''2 TASK'''
+
+
+Graph.Graph = get_subgraph(Graph, max(weak_components))
 
 degrees = {}
 for node in Graph.nodes():
-    print(Graph.degree(node))
     if Graph.degree(node) in degrees:
         degrees[Graph.degree(node)] += 1
     else:
         degrees[Graph.degree(node)] = 1
-
-print(Graph.degree(Graph.nodes()))
 bins = max(degrees.values())
-print(bins)
-print(Graph.nodes())
 plt.hist(degrees.keys(), bins=max(degrees.keys()), weights=[i/len(Graph.nodes()) for i in degrees.values()], color="g")
 plt.xlabel("Степени вершин")
 plt.ylabel("Вероятностное распределение")
 plt.savefig("hist.png")
-
-
-
-
 plt.show()
 
 
