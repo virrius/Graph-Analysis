@@ -1,5 +1,7 @@
-from Graph_methods import GraphClass, get_subgraph
+from Graph_methods import GraphClass, get_undirected_subgraph
 import matplotlib.pyplot as plt
+import networkx as nx
+
 
 Graph = GraphClass("vk.gexf")
 weak_components = [c for c in Graph.get_weak_connectivity()]
@@ -18,20 +20,38 @@ print("Доля узлов в наибольшей компоненте слаб
 '''2 TASK'''
 
 
-Graph.Graph = get_subgraph(Graph, max(weak_components))
+Graph.Graph = get_undirected_subgraph(Graph, max(weak_components))
 
 degrees = {}
+degrees_sum = 0
 for node in Graph.nodes():
     if Graph.degree(node) in degrees:
         degrees[Graph.degree(node)] += 1
     else:
         degrees[Graph.degree(node)] = 1
+    degrees_sum += Graph.degree(node)
 bins = max(degrees.values())
 plt.hist(degrees.keys(), bins=max(degrees.keys()), weights=[i/len(Graph.nodes()) for i in degrees.values()], color="g")
 plt.xlabel("Степени вершин")
 plt.ylabel("Вероятностное распределение")
 plt.savefig("hist.png")
-plt.show()
+#plt.show()
+
+
+print("Средняя степень вершины: ", degrees_sum/len(Graph.nodes()))
+
+print("Диаметр графа: ", max(Graph.eccentricity()))
+print("Радиус графа: ", min(Graph.eccentricity()))
+print("центральные вершины: ", [v for i, v in enumerate(Graph.nodes())
+                                if Graph.eccentricity()[i]==min(Graph.eccentricity())])
+print("Периферийные вершины: ", [v for i, v in enumerate(Graph.nodes())
+                                 if Graph.eccentricity()[i]==max(Graph.eccentricity())])
+
+
+path_sum = 0
+for v1 in Graph.nodes():
+    for v2 in Graph.nodes():
+        path_sum += Graph.Paths[v1][v2]
 
 
 
