@@ -1,4 +1,4 @@
-from Graph_methods import GraphClass, get_undirected_subgraph
+from Graph_methods import GraphClass, get_undirected_subgraph, graph_metrics
 import matplotlib.pyplot as plt
 import networkx as nx
 
@@ -54,4 +54,11 @@ for v1 in Graph.nodes():
         path_sum += Graph.Paths[v1][v2]
 
 
+'''3 TASK'''
+x, y = list(Graph.Graph)[5], list(Graph.Graph)[1]
+print('Число общих соседей: ', Graph.nodes_common_neighbours(x, y))
+print('Мера Жакара: ', Graph.nodes_jaccard_coeffitients(x, y))
+print('Frequency-Weighted Common Neighbors: ', Graph.nodes_adamic_adar(x, y))
+print('Preferential Attachment: ', Graph.nodes_preferential_attachment(x, y))
 
+graph_metrics(Graph)

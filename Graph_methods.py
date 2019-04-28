@@ -1,6 +1,8 @@
 from networkx import *
 from collections import deque
 from collections import defaultdict
+from math import log
+
 
 def get_undirected_subgraph(graph, nodes):
     return subgraph(graph.Graph.to_undirected(), nodes)
@@ -50,12 +52,31 @@ def ordered_dfs(gr, start, order, marked):
     order.append(start)
 
 
-def dfs_by_order(gr, start, marked, component):
-    marked.add(start)
-    component.append(start)
-    for v in neighbors(gr, start):
-        if v not in marked:
-            dfs_by_order(gr, start, marked, component)
+def graph_metrics(graph):
+    file = open('text.txt', 'w')
+    file.write("---------------Common neighbours--------------- \n\n")
+    for v1 in graph.nodes():
+        for v2 in graph.nodes():
+            if v1 != v2:
+                file.write(v1+' '+v2+' -> '+str(graph.nodes_common_neighbours(v1, v2)) + '\n')
+
+    file.write("\n\n---------------Jaccard’s Coefficient--------------- \n\n")
+    for v1 in graph.nodes():
+        for v2 in graph.nodes():
+            if v1 != v2:
+                file.write(v1 + ' ' + v2 + ' -> ' + str(graph.nodes_jaccard_coeffitients(v1, v2)) + '\n')
+
+    file.write("\n\n---------------Adamic/Adar (Frequency-Weighted Common Neighbors)--------------- \n\n")
+    for v1 in graph.nodes():
+        for v2 in graph.nodes():
+            if v1 != v2:
+                file.write(v1 + ' ' + v2 + ' -> ' + str(graph.nodes_adamic_adar(v1, v2)) + '\n')
+
+    file.write("\n\n---------------nodes_preferential_attachment--------------- \n\n")
+    for v1 in graph.nodes():
+        for v2 in graph.nodes():
+            if v1 != v2:
+                file.write(v1 + ' ' + v2 + ' -> ' + str(graph.nodes_adamic_adar(v1, v2)) + '\n')
 
 
 class GraphClass:
@@ -102,3 +123,17 @@ class GraphClass:
             for v2 in self.nodes():
                 e[i] = max(e[i], self.Paths[v1][v2])
         return e
+
+    def nodes_common_neighbours(self, node1, node2):
+        return len(set(neighbors(self.Graph, node1)) & set(neighbors(self.Graph, node2)))
+
+    def nodes_jaccard_coeffitients(self, node1, node2):
+        return self.nodes_common_neighbours(node1, node2)/len(set(neighbors(self.Graph, node1)) |
+                                                                   set(neighbors(self.Graph, node2)))
+
+    def nodes_adamic_adar(self, node1, node2):
+        return sum(1 / log(self.degree(w)) for w in set(neighbors(self.Graph, node1)) &
+                                                    set(neighbors(self.Graph, node2)))
+
+    def nodes_preferential_attachment(self, node1, node2):
+        return self.degree(node1) * self.degree(node2)
