@@ -1,8 +1,7 @@
 from networkx import *
 from collections import deque
 from collections import defaultdict
-from math import log
-
+from math import log, sqrt
 
 def get_undirected_subgraph(graph, nodes):
     return subgraph(graph.Graph.to_undirected(), nodes)
@@ -22,7 +21,7 @@ def dfs(gr, start):
     return visited
 
 
-def paths_bfs(gr, start, v=None):
+def paths_bfs(gr, start):
     visited = set()
     paths = defaultdict(lambda: 0)
     queue = deque()
@@ -48,34 +47,67 @@ def count_shortest_paths_with_keypoint(gr, start, keypoint):
     queue = deque()
     queue.append(start)
     layer_queue = deque()
-    paths_count = 1
-    keypoint_visited = set()
-    keypoint_visited.add(keypoint)
-    tmp = False
-    c=0
+    paths_count = 0
+    path_length = 0
+    keypoint_visited = False
 
     while queue or layer_queue:
-
         if not queue:
             queue.extend(list(layer_queue))
-            if(keypoint in queue):
-                queue.appendleft(keypoint)
             layer_queue.clear()
+            path_length += 1
 
         vertex = queue.popleft()
         if vertex not in visited:
             visited.add(vertex)
-            if vertex in keypoint_visited:
+            layer_queue.extend(set(neighbors(gr.Graph, vertex)) - visited)
+            if keypoint_visited and gr.Paths[start][vertex] >= path_length:
                 paths_count += 1
-                keypoint_visited.update(set(neighbors(gr, vertex)))
-                keypoint_visited= keypoint_visited - visited
-                queue.extendleft(keypoint_visited)
-            else:
-                layer_queue.extend(set(neighbors(gr, vertex)) - visited)
-
-
-    print(c)
+            if vertex == keypoint:
+                keypoint_visited = True
+                queue.clear()
+                layer_queue.clear()
+                visited.clear()
+                visited.add(keypoint)
+                layer_queue.extend(set(neighbors(gr.Graph, vertex)))
+                
     return paths_count
+
+
+def count_shortest_paths_with_edge(gr, start, keypoint1, keypoint2):
+    visited = set()
+    queue = deque()
+    queue.append(start)
+    layer_queue = deque()
+    paths_count = 0
+    path_length = 0
+    edge_visited = False
+
+    while queue or layer_queue:
+        if not queue:
+            queue.extend(list(layer_queue))
+            layer_queue.clear()
+            path_length += 1
+
+        vertex = queue.popleft()
+        if vertex not in visited:
+            visited.add(vertex)
+            layer_queue.extend(set(neighbors(gr.Graph, vertex)) - visited)
+            if edge_visited and gr.Paths[start][vertex] >= path_length:
+                paths_count += 1
+            if vertex == keypoint1:
+                path_length += 1
+                edge_visited = True
+                queue.clear()
+                layer_queue.clear()
+                visited.clear()
+                visited.add(keypoint1)
+                visited.add(keypoint2)
+                layer_queue.extend(set(neighbors(gr.Graph, keypoint2))-set(keypoint1))
+
+    return paths_count
+
+
 
 
 def ordered_dfs(gr, start, order, marked):
@@ -87,8 +119,29 @@ def ordered_dfs(gr, start, order, marked):
     order.append(start)
 
 
+def eigen(gr):
+    x = {v: 1 for v in gr.Graph}
+    max_iter = 50
+    for i in range(max_iter):
+        last = x
+        x = last.copy()
+        for n in x:
+            for nbr in gr.Graph[n]:
+                x[nbr] += last[n]
+        norm = sqrt(sum(z ** 2 for z in x.values())) or 1
+        x = {k: v / norm for k, v in x.items()}
+        if sum(abs(x[n] - last[n]) for n in x) < len(gr.nodes())*1e-6:
+            return x
+
+
+def adj_list(gr):
+    file = open('data/adj_list.csv', 'w')
+    for v in gr.nodes():
+        file.write(v+": "+str([n for n in neighbors(gr.Graph,v)])+"\n")
+
+
 def graph_coefficients(graph):
-    file = open('coefficients.txt', 'w')
+    file = open('data/coefficients.txt', 'w')
     file.write("---------------Common neighbours--------------- \n\n")
     for v1 in graph.nodes():
         for v2 in graph.nodes():
@@ -115,7 +168,7 @@ def graph_coefficients(graph):
 
 
 def graph_metrics(graph):
-    file = open('metrics.txt', 'w')
+    file = open('data/metrics.txt', 'w')
     file.write("---------------degree centrality--------------- \n\n")
     for v in graph.nodes():
         file.write(v + ' -> ' + str(graph.degree(v)/len(graph.nodes())) + '\n')
@@ -127,7 +180,7 @@ def graph_metrics(graph):
             sum += graph.Paths[v][v1]
         file.write(v + ' -> ' + str(len(graph.nodes())/sum) + '\n')
 
-    file.write("\n\n---------------closeness centrality--------------- \n\n")
+    file.write("\n\n---------------betweenness centrality--------------- \n\n")
 
     for key_v in graph.nodes():
         sum = 0
@@ -135,9 +188,24 @@ def graph_metrics(graph):
 
             if v1 != key_v:
 
-                sum += count_shortest_paths_with_keypoint(graph.Graph,v1,key_v)
-        file.write(key_v + ' -> ' + str(sum/len(graph.nodes())) + '\n')
+                sum += count_shortest_paths_with_keypoint(graph,v1,key_v)
+        file.write(key_v + ' -> ' + str(sum/(len(graph.nodes())-1)/(len(graph.nodes())-2)*2) + '\n')
+    file.write("\n\n---------------eigenvector centrality--------------- \n\n")
+    for v, c in eigen(graph).items():
+        file.write(str(v) + ' -> ' + str(c) + '\n')
+    #print(edge_betweenness_centrality(graph.Graph))
+    file.write("\n\n---------------edge betweenness centrality--------------- \n\n")
 
+    visited = set()
+    for key_v1 in graph.nodes():
+        for key_v2 in graph.nodes():
+            sum = 1
+            if key_v1 != key_v2 and key_v1 in neighbors(graph.Graph, key_v2) and (key_v1, key_v2) not in visited:
+                for v1 in graph.nodes():
+                    if v1 != key_v2:
+                        sum += count_shortest_paths_with_edge(graph, v1, key_v1, key_v2)
+                file.write(key_v1 + " " + key_v2 + ' -> ' + str(sum / (len(graph.nodes())) / (len(graph.nodes()) - 1) * 2) + '\n')
+                visited.add((key_v2, key_v1))
 
 
 

@@ -1,9 +1,10 @@
-from Graph_methods import GraphClass, get_undirected_subgraph, graph_metrics
+from Graph_methods import GraphClass, get_undirected_subgraph, graph_coefficients, graph_metrics, eigen, adj_list
 import matplotlib.pyplot as plt
 import networkx as nx
 
 
-Graph = GraphClass("vk.gexf")
+Graph = GraphClass("data/vk.gexf")
+adj_list(Graph)
 weak_components = [c for c in Graph.get_weak_connectivity()]
 strong_components = [c for c in Graph.get_strong_connectivity()]
 weak_comp_lengths = [len(v) for v in weak_components]
@@ -56,9 +57,12 @@ for v1 in Graph.nodes():
 
 '''3 TASK'''
 x, y = list(Graph.Graph)[5], list(Graph.Graph)[1]
+print("Для вершин: ", x, ", "+y)
 print('Число общих соседей: ', Graph.nodes_common_neighbours(x, y))
 print('Мера Жакара: ', Graph.nodes_jaccard_coeffitients(x, y))
 print('Frequency-Weighted Common Neighbors: ', Graph.nodes_adamic_adar(x, y))
 print('Preferential Attachment: ', Graph.nodes_preferential_attachment(x, y))
 
+graph_coefficients(Graph)
 graph_metrics(Graph)
+eigen(Graph)
