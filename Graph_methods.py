@@ -2,7 +2,9 @@ from networkx import *
 from collections import deque
 from collections import defaultdict
 from math import log, sqrt
-import  csv
+import csv
+import re
+
 
 def get_undirected_subgraph(graph, nodes):
     return subgraph(graph.Graph.to_undirected(), nodes)
@@ -109,8 +111,6 @@ def count_shortest_paths_with_edge(gr, start, keypoint1, keypoint2):
     return paths_count
 
 
-
-
 def ordered_dfs(gr, start, order, marked):
 
     marked.add(start)
@@ -137,8 +137,16 @@ def eigen(gr):
 
 def adj_list(gr):
     file = open('data/adj_list.csv', 'w')
+    file = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
     for v in gr.nodes():
-        file.write(v+": "+str([n for n in neighbors(gr.Graph,v)])+"\n")
+        file.writerow([v]+[n for n in neighbors(gr.Graph, v)])
+
+
+def edit_csv(input_filename, output_filename):
+
+    file = open(input_filename).read()
+    new_file = re.sub(';', ',', file)
+    open(output_filename, 'w').write(new_file)
 
 
 def graph_coefficients(graph):
@@ -147,65 +155,66 @@ def graph_coefficients(graph):
     file.writerow([None] + list(graph.nodes()))
     for v1 in graph.nodes():
         file.writerow([v1] + [graph.nodes_common_neighbours(v1, v2) if v1 is not v2 else '' for v2 in graph.nodes()])
+    file = open('data/jaccard.csv', 'w')
+    file = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    file.writerow([None] + list(graph.nodes()))
+    for v1 in graph.nodes():
+        file.writerow([v1] + [graph.nodes_jaccard_coeffitients(v1, v2)if v1 is not v2 else '' for v2 in graph.nodes()])
 
-    '''file.write("\n\n---------------Jaccard’s Coefficient--------------- \n\n")
+    file = open('data/adamic_adar.csv', 'w')
+    file = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    file.writerow([None] + list(graph.nodes()))
     for v1 in graph.nodes():
-        for v2 in graph.nodes():
-            if v1 != v2:
-                file.write(v1 + ' ' + v2 + ' -> ' + str(graph.nodes_jaccard_coeffitients(v1, v2)) + '\n')
-
-    file.write("\n\n---------------Adamic/Adar (Frequency-Weighted Common Neighbors)--------------- \n\n")
+        file.writerow([v1] + [graph.nodes_adamic_adar(v1, v2) if v1 is not v2 else '' for v2 in graph.nodes()])
+    file = open('data/preferential.csv', 'w')
+    file = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    file.writerow([None] + list(graph.nodes()))
     for v1 in graph.nodes():
-        for v2 in graph.nodes():
-            if v1 != v2:
-                file.write(v1 + ' ' + v2 + ' -> ' + str(graph.nodes_adamic_adar(v1, v2)) + '\n')
-    print("adam",[m for m in adamic_adar_index(graph.Graph)])
-    file.write("\n\n---------------preferential_attachment--------------- \n\n")
-    for v1 in graph.nodes():
-        for v2 in graph.nodes():
-            if v1 != v2:
-                file.write(v1 + ' ' + v2 + ' -> ' + str(graph.nodes_preferential_attachment(v1, v2)) + '\n')'''
+        file.writerow([v1] + [graph.nodes_preferential_attachment(v1, v2)
+                              if v1 is not v2 else ''
+                              for v2 in graph.nodes()])
 
 
 def graph_metrics(graph):
-    file = open('data/metrics.txt', 'w')
-    file.write("---------------degree centrality--------------- \n\n")
-
+    file = open('data/degree_centrality.csv', 'w')
+    file = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
     for v in graph.nodes():
-        file.write(v + ' -> ' + str(graph.degree(v)/(len(graph.nodes())-1)) + '\n')
+        file.writerow([v, graph.degree(v)/(len(graph.nodes())-1)])
 
-    file.write("\n\n---------------closeness centrality--------------- \n\n")
+    file = open('data/closeness_centrality.csv', 'w')
+    file = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
     for v in graph.nodes():
         sum = 0
         for v1 in graph.nodes():
             sum += graph.Paths[v][v1]
-        file.write(v + ' -> ' + str((len(graph.nodes())-1)/sum) + '\n')
+        file.writerow([v, (len(graph.nodes())-1)/sum])
 
-    file.write("\n\n---------------betweenness centrality--------------- \n\n")
-
+    file = open('data/betweenness_centrality.csv', 'w')
+    file = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
     for key_v in graph.nodes():
         sum = 0
         for v1 in graph.nodes():
             if v1 != key_v:
-                sum += count_shortest_paths_with_keypoint(graph,v1,key_v)
-        file.write(key_v + ' -> ' + str(sum/(len(graph.nodes())-1)/(len(graph.nodes())-2)*2) + '\n')
-    file.write("\n\n---------------eigenvector centrality--------------- \n\n")
-    for v, c in eigen(graph).items():
-        file.write(str(v) + ' -> ' + str(c) + '\n')
-    #print(edge_betweenness_centrality(graph.Graph))
-    file.write("\n\n---------------edge betweenness centrality--------------- \n\n")
+                sum += count_shortest_paths_with_keypoint(graph, v1, key_v)
+        file.writerow([key_v, sum/(len(graph.nodes())-1)/(len(graph.nodes())-2)*2])
 
+    file = open('data/eigenvector_centrality.csv', 'w')
+    file = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    for v, c in eigen(graph).items():
+        file.writerow([v, c])
+
+    file = open('data/edge_betweenness_centrality.csv', 'w')
+    file = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
     visited = set()
     for key_v1 in graph.nodes():
         for key_v2 in graph.nodes():
-            sum = 1
+            sum = 0
             if key_v1 != key_v2 and key_v1 in neighbors(graph.Graph, key_v2) and (key_v1, key_v2) not in visited:
                 for v1 in graph.nodes():
                     if v1 != key_v2:
                         sum += count_shortest_paths_with_edge(graph, v1, key_v1, key_v2)
-                file.write(key_v1 + " " + key_v2 + ' -> ' + str(sum / (len(graph.nodes())) / (len(graph.nodes()) - 1) * 2) + '\n')
+                file.writerow([key_v1, key_v2, sum / (len(graph.nodes())) / (len(graph.nodes()) - 1) * 2])
                 visited.add((key_v2, key_v1))
-
 
 
 class GraphClass:

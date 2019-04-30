@@ -1,7 +1,6 @@
 from Graph_methods import GraphClass, get_undirected_subgraph, graph_coefficients, graph_metrics, eigen, adj_list
 import matplotlib.pyplot as plt
-import networkx as nx
-
+import networkx
 
 Graph = GraphClass("data/vk.gexf")
 adj_list(Graph)
@@ -32,21 +31,19 @@ for node in Graph.nodes():
         degrees[Graph.degree(node)] = 1
     degrees_sum += Graph.degree(node)
 bins = max(degrees.values())
-plt.hist(degrees.keys(), bins=max(degrees.keys()), weights=[i/len(Graph.nodes()) for i in degrees.values()], color="g")
+plt.hist(degrees.keys(), bins=max(degrees.keys()), rwidth=0.8,
+         weights=[i/len(Graph.nodes()) for i in degrees.values()], color="g")
 plt.xlabel("Степени вершин")
 plt.ylabel("Вероятностное распределение")
-plt.savefig("hist.png")
-#plt.show()
-
+plt.savefig("data/hist.png")
 
 print("Средняя степень вершины: ", degrees_sum/len(Graph.nodes()))
-
 print("Диаметр графа: ", max(Graph.eccentricity()))
 print("Радиус графа: ", min(Graph.eccentricity()))
 print("центральные вершины: ", [v for i, v in enumerate(Graph.nodes())
-                                if Graph.eccentricity()[i]==min(Graph.eccentricity())])
+                                if Graph.eccentricity()[i] == min(Graph.eccentricity())])
 print("Периферийные вершины: ", [v for i, v in enumerate(Graph.nodes())
-                                 if Graph.eccentricity()[i]==max(Graph.eccentricity())])
+                                 if Graph.eccentricity()[i] == max(Graph.eccentricity())])
 
 
 path_sum = 0
