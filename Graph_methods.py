@@ -2,6 +2,7 @@ from networkx import *
 from collections import deque
 from collections import defaultdict
 from math import log, sqrt
+import  csv
 
 def get_undirected_subgraph(graph, nodes):
     return subgraph(graph.Graph.to_undirected(), nodes)
@@ -141,14 +142,13 @@ def adj_list(gr):
 
 
 def graph_coefficients(graph):
-    file = open('data/coefficients.txt', 'w')
-    file.write("---------------Common neighbours--------------- \n\n")
+    file = open('data/neighbours.csv', 'w')
+    file = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    file.writerow([None] + list(graph.nodes()))
     for v1 in graph.nodes():
-        for v2 in graph.nodes():
-            if v1 != v2:
-                file.write(v1+' '+v2+' -> '+str(graph.nodes_common_neighbours(v1, v2)) + '\n')
+        file.writerow([v1] + [graph.nodes_common_neighbours(v1, v2) if v1 is not v2 else '' for v2 in graph.nodes()])
 
-    file.write("\n\n---------------Jaccard’s Coefficient--------------- \n\n")
+    '''file.write("\n\n---------------Jaccard’s Coefficient--------------- \n\n")
     for v1 in graph.nodes():
         for v2 in graph.nodes():
             if v1 != v2:
@@ -159,35 +159,34 @@ def graph_coefficients(graph):
         for v2 in graph.nodes():
             if v1 != v2:
                 file.write(v1 + ' ' + v2 + ' -> ' + str(graph.nodes_adamic_adar(v1, v2)) + '\n')
-
+    print("adam",[m for m in adamic_adar_index(graph.Graph)])
     file.write("\n\n---------------preferential_attachment--------------- \n\n")
     for v1 in graph.nodes():
         for v2 in graph.nodes():
             if v1 != v2:
-                file.write(v1 + ' ' + v2 + ' -> ' + str(graph.nodes_preferential_attachment(v1, v2)) + '\n')
+                file.write(v1 + ' ' + v2 + ' -> ' + str(graph.nodes_preferential_attachment(v1, v2)) + '\n')'''
 
 
 def graph_metrics(graph):
     file = open('data/metrics.txt', 'w')
     file.write("---------------degree centrality--------------- \n\n")
+
     for v in graph.nodes():
-        file.write(v + ' -> ' + str(graph.degree(v)/len(graph.nodes())) + '\n')
+        file.write(v + ' -> ' + str(graph.degree(v)/(len(graph.nodes())-1)) + '\n')
 
     file.write("\n\n---------------closeness centrality--------------- \n\n")
     for v in graph.nodes():
         sum = 0
         for v1 in graph.nodes():
             sum += graph.Paths[v][v1]
-        file.write(v + ' -> ' + str(len(graph.nodes())/sum) + '\n')
+        file.write(v + ' -> ' + str((len(graph.nodes())-1)/sum) + '\n')
 
     file.write("\n\n---------------betweenness centrality--------------- \n\n")
 
     for key_v in graph.nodes():
         sum = 0
         for v1 in graph.nodes():
-
             if v1 != key_v:
-
                 sum += count_shortest_paths_with_keypoint(graph,v1,key_v)
         file.write(key_v + ' -> ' + str(sum/(len(graph.nodes())-1)/(len(graph.nodes())-2)*2) + '\n')
     file.write("\n\n---------------eigenvector centrality--------------- \n\n")
