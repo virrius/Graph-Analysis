@@ -2,8 +2,13 @@ from Graph_methods import GraphClass, get_undirected_subgraph, graph_coefficient
 import matplotlib.pyplot as plt
 import networkx
 
+
 Graph = GraphClass("data/vk.gexf")
 adj_list(Graph)
+
+''' 1 TASK'''
+
+
 weak_components = [c for c in Graph.get_weak_connectivity()]
 strong_components = [c for c in Graph.get_strong_connectivity()]
 weak_comp_lengths = [len(v) for v in weak_components]
@@ -21,6 +26,7 @@ print("Доля узлов в наибольшей компоненте слаб
 
 
 Graph.Graph = get_undirected_subgraph(Graph, max(weak_components))
+networkx.write_gexf(Graph.Graph,'data/max_weak_sub.gexf')
 
 degrees = {}
 degrees_sum = 0
@@ -30,7 +36,6 @@ for node in Graph.nodes():
     else:
         degrees[Graph.degree(node)] = 1
     degrees_sum += Graph.degree(node)
-bins = max(degrees.values())
 plt.hist(degrees.keys(), bins=max(degrees.keys()), rwidth=0.8,
          weights=[i/len(Graph.nodes()) for i in degrees.values()], color="g")
 plt.xlabel("Степени вершин")
@@ -50,6 +55,7 @@ path_sum = 0
 for v1 in Graph.nodes():
     for v2 in Graph.nodes():
         path_sum += Graph.Paths[v1][v2]
+print("Cредняя длина пути: ", path_sum/len(Graph.nodes())/(len(Graph.nodes())-1))
 
 
 '''3 TASK'''
